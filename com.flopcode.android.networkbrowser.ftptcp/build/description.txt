@@ -1,0 +1,2 @@
+Not an application per se but a plugin for the network browser.
+It supports the ftp-protocol and launches your default ftp client with the choosen ftp-server. Right now only fsync seems to support the needed intents!

@@ -1,0 +1,3 @@
+Not an application per se but a plugin for the network browser.
+It supports the http-protocol and launches your default browser with the 
+choosen webserver.

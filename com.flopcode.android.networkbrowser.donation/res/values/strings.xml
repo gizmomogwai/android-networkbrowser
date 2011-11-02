@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Donate for the NetworkBrowser</string>
+    <string name="thanks">Thanks for donating for the NetworkBrowser\nPlease send feedback and ideas for new plugins</string>
+    <string name="take_me_to_the_market">Take me to the market\nto get the NetworkBrowser</string>
+</resources>

@@ -1,0 +1,2 @@
+This is just a donation screen to support the development of the network browser.
+See http://goo.gl/TmQ3
