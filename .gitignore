@@ -2,3 +2,7 @@ bin
 gen
 build
 .gradle
+*.iml
+*.iws
+*.ipr
+local.properties
