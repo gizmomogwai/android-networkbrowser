@@ -1,5 +1,0 @@
-The networkbrowser lets you examine your wifi network and shows you all registered bonjour services. 
-You can browse the instances of those services and finally launch adapters for those instances.
-Other applications can use this application to search and resolve a specific service via intents.
-Please donate if you find the program useful.
-See http://goo.gl/TmQ3
