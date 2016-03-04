@@ -1,0 +1,2 @@
+Not an application per se but a plugin for the network browser.
+It supports the ssh-protocol and launches connectbot!
