@@ -1,13 +1,5 @@
 package com.flopcode.android.networkbrowser;
 
-import java.net.InetAddress;
-import java.util.Enumeration;
-
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
-
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -19,13 +11,20 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-
 import com.flopcode.android.networkbrowser.ServiceAdapter.Service;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
+import java.net.InetAddress;
+import java.util.Enumeration;
 
 public class AbstractNetworkBrowser extends ListActivity {
 
@@ -37,11 +36,73 @@ public class AbstractNetworkBrowser extends ListActivity {
 
   private MulticastLock fLock;
 
-  private JmDNS fDns;
-
   private String fQuery;
 
   private ProgressDialog fProgressDialog;
+  private JmDNS fDns;
+
+  private static final String LOG_TAG = "NetworkBrowser";
+
+  private class BonjourAsyncTask extends AsyncTask<Object, Runnable, Object> {
+
+    private byte[] intToIp(int i) {
+      byte[] res = new byte[4];
+      res[0] = (byte) (i & 0xff);
+      res[1] = (byte) ((i >> 8) & 0xff);
+      res[2] = (byte) ((i >> 16) & 0xff);
+      res[3] = (byte) ((i >> 24) & 0xff);
+      return res;
+    }
+
+    protected Object doInBackground(Object... params) {
+      try {
+        WifiManager wifiManager = (WifiManager) params[0];
+        String query = (String) params[1];
+        byte[] wifiAddress = intToIp(wifiManager.getDhcpInfo().ipAddress);
+
+        InetAddress wifi = InetAddress.getByAddress(wifiAddress);
+        fDns = JmDNS.create(wifi);
+
+        fDns.addServiceListener(query, new ServiceListener() {
+          @Override
+          public void serviceResolved(ServiceEvent serviceEvent) {
+          }
+
+          @Override
+          public void serviceRemoved(final ServiceEvent serviceEvent) {
+            publishProgress(new Runnable() {
+              @Override
+              public void run() {
+                fListAdapter.remove(serviceEvent);
+              }
+            });
+          }
+
+          @Override
+          public void serviceAdded(final ServiceEvent serviceEvent) {
+            publishProgress(new Runnable() {
+              @Override
+              public void run() {
+                fProgressDialog.dismiss();
+                fListAdapter.add(serviceEvent);
+                new AddServiceEventAsyncTask().execute(serviceEvent);
+              }
+            });
+          }
+        });
+      } catch (Exception e) {
+        Log.e(LOG_TAG, "problems with mdns", e);
+      }
+      return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(Runnable... values) {
+      for (Runnable value : values) {
+        value.run();
+      }
+    }
+  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -59,60 +120,37 @@ public class AbstractNetworkBrowser extends ListActivity {
 
     fListAdapter = new ServiceAdapter(this, fQuery);
 
-    try {
-      WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-      if (!wifiManager.isWifiEnabled()) {
-        AlertDialog dialog = new AlertDialog.Builder(this).setMessage("please enable wifi").create();
-        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "ok", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            finish();
-          }
-        });
-        dialog.show();
-        return;
-      }
-      fProgressDialog = ProgressDialog.show(this, "searching for services", fQuery);
-      fProgressDialog.setOnKeyListener(new OnKeyListener() {
+    WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+    if (!wifiManager.isWifiEnabled()) {
+      AlertDialog dialog = new AlertDialog.Builder(this).setMessage("please enable wifi").create();
+      dialog.setButton(AlertDialog.BUTTON_POSITIVE, "ok", new DialogInterface.OnClickListener() {
         @Override
-        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-          if (keyCode == KeyEvent.KEYCODE_BACK) {
-            dialog.dismiss();
-            finish();
-            return true;
-          }
-          return false;
+        public void onClick(DialogInterface dialog, int which) {
+          finish();
         }
       });
-      showTitle();
-
-      fLock = wifiManager.createMulticastLock("mylock");
-      fLock.acquire();
-      byte[] wifiAddress = intToIp(wifiManager.getDhcpInfo().ipAddress);
-
-      InetAddress wifi = InetAddress.getByAddress(wifiAddress);
-      fDns = JmDNS.create(wifi);
-
-      fDns.addServiceListener(fQuery, new ServiceListener() {
-        @Override
-        public void serviceResolved(ServiceEvent arg0) {
-        }
-
-        @Override
-        public void serviceRemoved(ServiceEvent arg0) {
-          removeServiceType(arg0);
-        }
-
-        @Override
-        public void serviceAdded(ServiceEvent arg0) {
-          addServiceType(arg0);
-        }
-
-      });
-    } catch (Exception e) {
-      e.printStackTrace();
+      dialog.show();
+      return;
     }
+    fLock = wifiManager.createMulticastLock("mylock");
+    fLock.acquire();
+
+    fProgressDialog = ProgressDialog.show(this, "searching for services", fQuery);
+    fProgressDialog.setOnKeyListener(new OnKeyListener() {
+      @Override
+      public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+          dialog.dismiss();
+          finish();
+          return true;
+        }
+        return false;
+      }
+    });
+    showTitle();
+
     setListAdapter(fListAdapter);
+    new BonjourAsyncTask().execute(wifiManager, fQuery);
   }
 
   private void showTitle() {
@@ -123,33 +161,13 @@ public class AbstractNetworkBrowser extends ListActivity {
     }
   }
 
-  private byte[] intToIp(int i) {
-    byte[] res = new byte[4];
-    res[0] = (byte) (i & 0xff);
-    res[1] = (byte) ((i >> 8) & 0xff);
-    res[2] = (byte) ((i >> 16) & 0xff);
-    res[3] = (byte) ((i >> 24) & 0xff);
-    return res;
-  }
 
   @Override
   protected void onDestroy() {
-    if (fDns != null) {
-      fDns.close();
-    }
     if (fLock != null) {
       fLock.release();
     }
     super.onDestroy();
-  }
-
-  protected void removeServiceType(final ServiceEvent arg0) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        fListAdapter.remove(arg0);
-      }
-    });
   }
 
   class AddServiceEventAsyncTask extends AsyncTask<ServiceEvent, Void, ServiceInfo> {
@@ -166,22 +184,11 @@ public class AbstractNetworkBrowser extends ListActivity {
     }
   }
 
-  private void addServiceType(final ServiceEvent arg0) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        fProgressDialog.dismiss();
-        fListAdapter.add(arg0);
-        new AddServiceEventAsyncTask().execute(arg0);
-      }
-    });
-  }
-
   @SuppressWarnings("unchecked")
   @Override
   protected void onListItemClick(ListView l, View v, int position, long id) {
     Service service = fListAdapter.getTypedItem(position);
-    if (fQuery == SERVICE_DISCOVERY) {
+    if (fQuery.equals(SERVICE_DISCOVERY)) {
       Intent i = new Intent(this, getClass());
       i.setData(Uri.parse(SCHEME + "://" + service.getName()));
       startActivity(i);
@@ -197,7 +204,7 @@ public class AbstractNetworkBrowser extends ListActivity {
       intent.putExtra("port", info.getPort());
       Enumeration<String> e = info.getPropertyNames();
       while (e.hasMoreElements()) {
-        String propertyName = (String) e.nextElement();
+        String propertyName = e.nextElement();
         intent.putExtra("property." + propertyName, info.getPropertyString(propertyName));
       }
 
@@ -211,13 +218,13 @@ public class AbstractNetworkBrowser extends ListActivity {
   }
 
   public void dumpIntent(Intent intent) {
-    System.out.println("action: " + intent.getAction());
-    System.out.println("data: " + intent.getData());
-    System.out.println("extras:");
+    Log.d(LOG_TAG, "action: " + intent.getAction());
+    Log.d(LOG_TAG, "data: " + intent.getData());
+    Log.d(LOG_TAG, "extras:");
     Bundle bundle = intent.getExtras();
     for (String key : bundle.keySet()) {
       Object object = bundle.get(key);
-      System.out.println(key + "->" + object + "(" + object.getClass().getName() + ")");
+      Log.d(LOG_TAG, key + "->" + object + "(" + (object != null ? object.getClass().getName() : "") + ")");
     }
   }
 
