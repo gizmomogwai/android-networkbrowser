@@ -6,6 +6,6 @@
   android:versionName="2.0">
 
   <uses-sdk
-    android:minSdkVersion="4" />
+    android:minSdkVersion="23" />
 
 </manifest>
