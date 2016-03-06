@@ -9,6 +9,8 @@ android {
 
 dependencies {
   compile project(':helper')
+  compile 'com.android.support:appcompat-v7:23.2.0'
+  compile 'com.android.support:design:23.2.0'
 }
 
 // from http://stackoverflow.com/a/22597752
@@ -25,7 +27,7 @@ android {
   buildToolsVersion "23.0.2"
 
   defaultConfig {
-    minSdkVersion 23
+    minSdkVersion 21
     targetSdkVersion 23
   }
   signingConfigs {

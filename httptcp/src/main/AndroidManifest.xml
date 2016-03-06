@@ -5,37 +5,34 @@
   android:versionCode="3"
   android:versionName="3.0">
   <application
+    android:allowBackup="false"
+    android:fullBackupContent="false"
     android:icon="@drawable/icon"
     android:label="@string/app_name">
 
-<!--
     <activity
       android:name=".HttpSearchActivity">
       <intent-filter>
         <action
-          android:name="android.intent.action.MAIN" />
+          android:name="android.intent.action.MAIN"/>
         <category
-          android:name="android.intent.category.LAUNCHER" />
+          android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
--->
 
     <activity
       android:name=".HttpAdapter">
       <intent-filter>
         <action
-          android:name="android.intent.action.VIEW" />
+          android:name="android.intent.action.VIEW"/>
         <category
-          android:name="android.intent.category.DEFAULT" />
+          android:name="android.intent.category.DEFAULT"/>
         <data
           android:scheme="zeroconf"
-          android:host="_http._tcp.local." />
+          android:host="_http._tcp.local."/>
       </intent-filter>
     </activity>
 
-
   </application>
-  <uses-sdk
-    android:minSdkVersion="23" />
 
 </manifest>

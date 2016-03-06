@@ -1,24 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
   xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.flopcode.android.networkbrowser"
-  android:versionCode="6"
-  android:versionName="6.0">
+  package="com.flopcode.android.networkbrowser">
+
+  <uses-permission
+    android:name="android.permission.INTERNET"/>
+  <uses-permission
+    android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission
+    android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+  <uses-permission
+    android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
   <application
     android:icon="@drawable/icon"
-    android:label="@string/app_name">
+    android:supportsRtl="true"
+    android:label="Network Browser"
+    android:allowBackup="false"
+    android:fullBackupContent="false"
+    android:theme="@android:style/Theme.Material.Light">
 
     <activity
-      android:name=".AbstractNetworkBrowser" />
+      android:name=".AbstractNetworkBrowser"/>
 
     <activity
       android:name=".SimpleNetworkBrowserActivity">
       <intent-filter>
         <action
-          android:name="android.intent.action.MAIN" />
+          android:name="android.intent.action.MAIN"/>
         <category
-          android:name="android.intent.category.LAUNCHER" />
+          android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
 
@@ -26,25 +37,14 @@
       android:name=".PickServiceActivity">
       <intent-filter>
         <action
-          android:name="android.intent.action.PICK" />
+          android:name="android.intent.action.PICK"/>
         <category
-          android:name="android.intent.category.DEFAULT" />
+          android:name="android.intent.category.DEFAULT"/>
         <data
-          android:scheme="zeroconf"  />
+          android:scheme="zeroconf"/>
       </intent-filter>
     </activity>
-
   </application>
-  <uses-sdk
-    android:minSdkVersion="23" />
 
-  <uses-permission
-    android:name="android.permission.INTERNET" />
-  <uses-permission
-    android:name="android.permission.ACCESS_WIFI_STATE" />
-  <uses-permission
-    android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-  <uses-permission
-    android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 </manifest>
