@@ -10,7 +10,8 @@ import com.flopcode.android.networkbrowser.helper.Helper;
 
 public class HttpAdapter extends Activity {
 
-	private static final String PROPERTY_PATH = "property.path";
+  public static final String LOG_TAG = "HttpAdapter";
+  private static final String PROPERTY_PATH = "property.path";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,7 @@ public class HttpAdapter extends Activity {
 		uriString = uriString.replaceAll("/$", "");
 		uriString = uriString.replaceAll("//", "/");
 		uriString = "http://" + uriString;
-		Log.d("TcpHttpAdapter", "opening url: '" + uriString + "'");
+		Log.d(LOG_TAG, "opening url: '" + uriString + "'");
 		Helper.startBrowser(context, uriString);
 	}
 

@@ -1,0 +1,5 @@
+* HTTP Adapter for the Network Browser.
+Simply launches the default browser via intent.
+
+* TODOs
+** TODO https support
